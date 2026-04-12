@@ -19,11 +19,17 @@ jobs:
           node-version: 20
           cache: "npm"
 
+      - uses: pnpm/action-setup@v6
+        name: Install pnpm
+        with:
+          version: 10
+          cache: true
+
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
         env:
           NODE_ENV: production
 

@@ -1,7 +1,19 @@
 import samnang from "../assets/samnang.jpg";
 import banner from "../assets/banner.jpg";
+import khmer from "../assets/khmer.svg";
+import telegram from "../assets/telegram.svg";
+import { useEffect, useState } from "react";
 
 export default function Header() {
+  const [contact, setContact] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setContact(false);
+    }, 3000);
+    return () => clearInterval(interval);
+  });
+
   return (
     <div className="lg:pt-2 flex flex-col gap-4">
       <img
@@ -20,15 +32,36 @@ export default function Header() {
           <h1 className="text-white font-bold text-2xl">Khath Samnang</h1>
           <p className="pt-4 max-w-1xl text-center lg:text-start text-white font-normal text-lg">
             <span className="block">
-              Graphic Designer / Full-Stack Developer / IT Support
+              Graphic Designer | Full-Stack Developer | IT Support
             </span>
             <span className="block">
               Passionate about computers and tinkering with technologies.
             </span>
           </p>
-          <button className="mt-4 bg-orange-500 w-38 h-12 rounded-sm text-center text-white font-bold text-xl">
-            Contact Me
-          </button>
+          {contact ? (
+            <div className="flex flex-row gap-3 pt-4 items-center">
+              <a href="tel:+87556030" className="flex flex-row gap-3">
+                <img src={khmer} width={50} className="rounded-xs" />
+                <p className="text-white font-bold text-lg">087 556 030</p>
+              </a>
+              <a
+                href="https://t.me/ICBC_Samnang_Khath"
+                className="flex flex-row gap-3"
+              >
+                <img src={telegram} width={30} />
+                <p className="text-white font-bold text-lg">Khath Samnang</p>
+              </a>
+            </div>
+          ) : (
+            <button
+              className="mt-4 bg-orange-500 w-38 h-12 rounded-sm text-center text-white font-bold text-xl"
+              onClick={() => {
+                setContact(true);
+              }}
+            >
+              Contact Me
+            </button>
+          )}
         </div>
       </div>
     </div>

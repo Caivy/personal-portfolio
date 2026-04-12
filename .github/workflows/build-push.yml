@@ -28,7 +28,7 @@ jobs:
           NODE_ENV: production
 
       - name: Deploy to Server
-        uses: burnett01/rsync-deployments@8
+        uses: burnett01/rsync-deployments@v8
         with:
           switches: -avz --delete
           path: dist/

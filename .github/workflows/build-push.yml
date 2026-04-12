@@ -1,0 +1,39 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Deploy to Server
+        uses: burnett01/rsync-deployments@8
+        with:
+          switches: -avz --delete
+          path: dist/
+          remote_path: /app/portfolio
+          remote_host: ${{ secrets.VPS_HOST }}
+          remote_port: 22
+          remote_user: deploy
+          remote_key: ${{ secrets.VPS_KEY }}

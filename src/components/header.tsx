@@ -10,7 +10,7 @@ export default function Header() {
   useEffect(() => {
     const interval = setInterval(() => {
       setContact(false);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(interval);
   });
 

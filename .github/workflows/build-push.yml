@@ -13,11 +13,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Nodejs
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
+      # - name: Setup Nodejs
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 20
+      #     cache: "npm"
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm

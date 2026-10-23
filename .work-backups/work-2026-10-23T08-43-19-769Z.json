@@ -1,0 +1,31 @@
+{
+  "posters": [
+    { "title": "Poster title", "image": "/work/posts/01.webp", "client": "Client name" },
+    { "title": "Poster title 2", "image": "/work/posts/02.webp", "client": "Client name" },
+    { "title": "Poster title 3", "image": "/work/posts/03.webp", "client": "Client name" },
+    { "title": "Poster title 4", "image": "/work/posts/04.webp", "client": "Client name" }
+  ],
+  "prints": [
+    { "title": "Print title", "image": "/work/print/01.webp", "type": "Flyer", "size": "A5" },
+    { "title": "Print title 2", "image": "/work/print/02.webp", "type": "Brochure", "size": "A4" },
+    { "title": "Print title 3", "image": "/work/print/03.webp", "type": "Banner", "size": "2×1 m", "ratio": "landscape" },
+    { "title": "Print title 4", "image": "/work/print/04.webp", "type": "Name card", "size": "90×55 mm", "ratio": "landscape" }
+  ],
+  "videos": [
+    { "title": "Video title", "thumbnail": "/work/videos/01.webp", "duration": "0:45", "meta": "Promo · 2025", "src": "/work/videos/01.mp4" },
+    { "title": "Video title 2", "thumbnail": "/work/videos/02.webp", "duration": "1:20", "meta": "Reel · Facebook", "href": "https://www.youtube.com/watch?v=..." }
+  ],
+  "projects": [
+    {
+      "title": "Project name",
+      "description": "One or two sentences on what it does and who it is for. Keep it plain.",
+      "image": "/work/projects/01.webp",
+      "domain": "example.com",
+      "url": "https://example.com",
+      "duration": "3 weeks",
+      "role": "Design & development",
+      "year": "2025",
+      "stack": ["React", "Tailwind", "Vercel"]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "posters": [
+    {
+      "title": "Easy Phone Lease Option with iCare",
+      "image": "/work/posts/icareshop-phone-heart-poster.webp",
+      "client": "Client name"
+    },
+    {
+      "title": "Home Appliance Bundle",
+      "image": "/work/posts/home-appliance-bundle-poster-01.webp",
+      "client": "Client name"
+    },
+    {
+      "title": "iPhone 14 Pro Max Second Hand",
+      "image": "/work/posts/iphone-14-pro-max-real-poster-4.webp",
+      "client": "Client name"
+    },
+    {
+      "title": "Ricecooker that every mother need",
+      "image": "/work/posts/ricecooker-everything-a-mom-needs.webp",
+      "client": "Client name"
+    }
+  ],
+  "prints": [],
+  "videos": [],
+  "projects": []
+}

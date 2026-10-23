@@ -1,0 +1,7 @@
+@import "../src/index.css"; /* brand tokens, fonts, focus ring */
+@source "./"; /* scan admin/ for Tailwind classes */
+
+/* The site uses mandatory scroll snapping on desktop. Not wanted here. */
+html {
+  scroll-snap-type: none;
+}

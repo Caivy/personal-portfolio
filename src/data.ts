@@ -1,3 +1,5 @@
+import work from "./data/work.json";
+
 export const profile = {
   name: ["Khath", "Samnang"],
   role: "Graphic designer & IT specialist",
@@ -87,12 +89,46 @@ export const languages = [
   { name: "English", detail: "Fluent, writing and speaking" },
 ];
 
-// Add `image: "/work/poster.webp"` to show a real design instead of the placeholder art.
-export type Work = { title: string; image?: string };
-export const work: Work[] = [
-  { title: "Poster, name of project" },
-  { title: "Promotional print, name of project" },
-  { title: "Brand piece, name of project" },
-];
-
 export const facts = ["Phnom Penh", "Khmer · English", "Design + IT"];
+
+export type Poster = {
+  title: string;
+  image?: string; // 4:5 works best (1080×1350). Leave out to show a placeholder.
+  client?: string;
+};
+
+export type Print = {
+  title: string;
+  image: string; // a flat scan or mockup of the finished piece
+  type: string; // "Flyer", "Brochure", "Banner", "Name card"...
+  size?: string; // "A4", "85×55 mm"
+  ratio?: "portrait" | "landscape" | "square"; // defaults to portrait
+};
+
+export type Video = {
+  title: string;
+  thumbnail: string; // 16:9 (1280×720)
+  duration?: string; // "0:45"
+  meta?: string; // "Reel · Facebook"
+  // Use ONE of these:
+  src?: string; // an .mp4 in /public — plays in a popup
+  href?: string; // YouTube / Facebook / TikTok link — opens in a new tab
+};
+
+export type Project = {
+  title: string;
+  description: string;
+  image: string; // screenshot, 1600×1000 (16:10), .webp. Cropped from the top.
+  domain: string; // shown in the fake address bar
+  url?: string; // "Visit site" link
+  duration: string; // "3 weeks"
+  role: string; // "Design & development"
+  year: string;
+  stack: string[];
+};
+
+// The work lists live in src/data/work.json, which the dev-only admin (/admin/) rewrites.
+export const posters = work.posters as Poster[];
+export const prints = work.prints as Print[];
+export const videos = work.videos as Video[];
+export const projects = work.projects as Project[];

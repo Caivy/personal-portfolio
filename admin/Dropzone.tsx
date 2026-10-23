@@ -23,12 +23,17 @@ type Staged = {
   w?: number;
   h?: number;
   ratio?: Ratio;
+  pdf?: boolean;
   status: "ready" | "working" | "error";
   msg?: string;
 };
 
 const IMG = /\.(jpe?g|png|webp|avif|gif|tiff?)$/i;
-const LIMITS = { image: 25 * 1048576, video: 300 * 1048576 };
+const LIMITS = {
+  image: 25 * 1048576,
+  video: 300 * 1048576,
+  pdf: 100 * 1048576,
+};
 const titleFrom = (name: string) => {
   const t = name
     .replace(/\.[^.]+$/, "")
@@ -40,13 +45,22 @@ const titleFrom = (name: string) => {
 type Props = {
   cat: Cat;
   ffmpeg: boolean;
+  pdf: boolean;
   mode: Mode;
   onMode: (m: Mode) => void;
   onAdd: (row: Row) => void;
   onSize: (path: string, bytes: number) => void;
 };
 
-export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
+export function Dropzone({
+  cat,
+  ffmpeg,
+  pdf,
+  mode,
+  onMode,
+  onAdd,
+  onSize,
+}: Props) {
   const isVideo = cat === "videos";
   const [staged, setStaged] = useState<Staged[]>([]);
   const [defaults, setDefaults] = useState<Item>(
@@ -61,16 +75,21 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
   useEffect(() => () => urls.current.forEach(URL.revokeObjectURL), []);
 
   const accepted = (f: File) =>
-    isVideo ? /\.mp4$/i.test(f.name) : IMG.test(f.name);
+    isVideo
+      ? /\.mp4$/i.test(f.name)
+      : IMG.test(f.name) || (pdf && /\.pdf$/i.test(f.name));
   const bulkFields = FIELDS[cat].filter((f) => f.bulk);
 
   async function addFiles(list: FileList | File[]) {
     const files = [...list];
     const ok = files.filter(accepted);
     const skipped = files.length - ok.length;
+    const types = pdf
+      ? "JPG, PNG, WebP, AVIF, GIF, TIFF or PDF"
+      : "JPG, PNG, WebP, AVIF, GIF or TIFF. PDF needs poppler or Ghostscript installed";
     setNote(
       skipped
-        ? `${skipped} file${skipped > 1 ? "s" : ""} skipped. ${isVideo ? "This tab takes .mp4 files." : "This tab takes JPG, PNG, WebP, AVIF, GIF or TIFF."}`
+        ? `${skipped} file${skipped > 1 ? "s" : ""} skipped. ${isVideo ? "This tab takes .mp4 files." : `This tab takes ${types}.`}`
         : "",
     );
     const next = await Promise.all(
@@ -81,7 +100,8 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
           title: titleFrom(file.name),
           status: "ready",
         };
-        if (!isVideo) {
+        s.pdf = /\.pdf$/i.test(file.name);
+        if (!isVideo && !s.pdf) {
           s.preview = URL.createObjectURL(file);
           urls.current.push(s.preview);
           try {
@@ -101,9 +121,9 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
 
   const ratioOf = (s: Staged): Ratio =>
     s.ratio ?? (s.w && s.h ? detectRatio(s.w, s.h) : "portrait");
-  const limit = isVideo ? LIMITS.video : LIMITS.image;
 
   function problems(s: Staged): { error?: string; warn?: string } {
+    const limit = isVideo ? LIMITS.video : s.pdf ? LIMITS.pdf : LIMITS.image;
     if (s.file.size > limit)
       return { error: `${kb(s.file.size)} is over the ${kb(limit)} limit.` };
     const out: { warn?: string } = {};
@@ -133,13 +153,15 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
         ),
       );
       try {
-        const ratio = cat === "print" ? ratioOf(s) : undefined;
+        const ratio =
+          cat === "print" ? (s.pdf ? s.ratio : ratioOf(s)) : undefined;
         const r = await api.upload(s.file, {
           category: cat,
           kind: isVideo ? "video" : "image",
           ratio,
           mode: isVideo ? undefined : mode,
         });
+        const used = cat === "print" ? (r.ratio ?? ratio) : undefined;
         const d: Item = Object.fromEntries(
           Object.entries(defaults).filter(([, x]) =>
             Array.isArray(x) ? x.length : x !== "" && x != null,
@@ -152,7 +174,7 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
             title: s.title.trim(),
             image: r.path,
             type: "",
-            ...(ratio && ratio !== "portrait" ? { ratio } : {}),
+            ...(used && used !== "portrait" ? { ratio: used } : {}),
             ...d,
           };
         else if (cat === "videos")
@@ -228,7 +250,9 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
               ? ffmpeg
                 ? "ffmpeg found. Thumbnails and durations are made automatically."
                 : "ffmpeg not found. Add each thumbnail and duration by hand."
-              : "Converted to WebP and resized."}
+              : pdf
+                ? "Converted to WebP and resized. A PDF becomes a preview of page 1."
+                : "Converted to WebP and resized. PDF previews need poppler or Ghostscript installed."}
           </p>
         </div>
         {!isVideo && (
@@ -265,7 +289,7 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
           type="file"
           multiple
           hidden
-          accept={isVideo ? "video/mp4,.mp4" : "image/*"}
+          accept={isVideo ? "video/mp4,.mp4" : pdf ? "image/*,.pdf" : "image/*"}
           onChange={(e) => {
             if (e.target.files) void addFiles(e.target.files);
             e.target.value = "";
@@ -327,7 +351,7 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
                       aria-hidden
                       className="grid size-12 shrink-0 place-items-center rounded-md bg-navy text-xs font-semibold text-white"
                     >
-                      MP4
+                      {s.pdf ? "PDF" : "MP4"}
                     </span>
                   )}
                   <div className="min-w-0 flex-1">
@@ -369,18 +393,25 @@ export function Dropzone({ cat, ffmpeg, mode, onMode, onAdd, onSize }: Props) {
                   {cat === "print" && (
                     <select
                       aria-label={`Ratio for ${s.file.name}`}
-                      value={ratioOf(s)}
+                      value={s.pdf && !s.ratio ? "auto" : ratioOf(s)}
                       onChange={(e) =>
                         setStaged((p) =>
                           p.map((x) =>
                             x.id === s.id
-                              ? { ...x, ratio: e.target.value as Ratio }
+                              ? {
+                                  ...x,
+                                  ratio:
+                                    e.target.value === "auto"
+                                      ? undefined
+                                      : (e.target.value as Ratio),
+                                }
                               : x,
                           ),
                         )
                       }
                       className={`${inputCls} w-32`}
                     >
+                      {s.pdf && <option value="auto">Auto (from page)</option>}
                       <option value="portrait">Portrait</option>
                       <option value="landscape">Landscape</option>
                       <option value="square">Square</option>

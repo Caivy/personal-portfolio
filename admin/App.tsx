@@ -38,6 +38,7 @@ export function App() {
     {},
   );
   const [ffmpeg, setFfmpeg] = useState(false);
+  const [pdf, setPdf] = useState(false);
   const [saved, setSaved] = useState("");
   const [loadErr, setLoadErr] = useState("");
   const [ready, setReady] = useState(false);
@@ -69,6 +70,7 @@ export function App() {
       setRows(r);
       setSizes(res.sizes);
       setFfmpeg(res.ffmpeg);
+      setPdf(res.pdf);
       setSaved(JSON.stringify(fromRows(r)));
       setSel(new Set());
       setLoadErr("");
@@ -413,6 +415,7 @@ export function App() {
             key={tab}
             cat={tab}
             ffmpeg={ffmpeg}
+            pdf={pdf}
             mode={modes[tab]}
             onMode={(m) => setModes((x) => ({ ...x, [tab]: m }))}
             onAdd={(r) => add(tab, r)}

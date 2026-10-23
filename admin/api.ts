@@ -11,6 +11,7 @@ export type LoadResp = {
   data: WorkJson;
   sizes: Record<string, number | null>;
   ffmpeg: boolean;
+  pdf: boolean;
 };
 export type UploadResp = {
   path?: string; // images

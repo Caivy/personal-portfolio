@@ -48,6 +48,7 @@ const MAX_OUT: Record<Cat, number> = {
 };
 const FFMPEG = process.env.FFMPEG_PATH || "ffmpeg";
 const BACKUPS_KEPT = 30;
+const PDF_LIMIT = 100 * MB;
 
 type Ctx = { workRoot: string; jsonFile: string; backupDir: string };
 type Obj = Record<string, unknown>;
@@ -308,6 +309,100 @@ async function grabFrame(file: string, dir: string) {
   return { png: null, duration };
 }
 
+/* ---------- PDF previews (poppler or Ghostscript) ---------- */
+
+type PdfTool = { kind: "poppler" | "gs"; bin: string };
+let pdfTool: Promise<PdfTool | null> | undefined;
+const detectPdf = () =>
+  (pdfTool ??= (async () => {
+    const tries: [PdfTool["kind"], string, string[]][] = [
+      ["poppler", process.env.PDFTOPPM_PATH || "pdftoppm", ["-v"]],
+      ["gs", process.env.GS_PATH || "gs", ["--version"]],
+      ["gs", "gswin64c", ["--version"]],
+      ["gs", "gswin32c", ["--version"]],
+    ];
+    for (const [kind, bin, args] of tries) {
+      try {
+        await run(bin, args);
+        return { kind, bin };
+      } catch {
+        /* try the next one */
+      }
+    }
+    return null;
+  })());
+
+// Renders page 1 to a PNG buffer. Both tools convert CMYK to sRGB.
+async function pdfToPng(
+  req: IncomingMessage,
+): Promise<{ buf: Buffer; before: number }> {
+  const tool = await detectPdf();
+  if (!tool)
+    fail(
+      "PDF previews need poppler (pdftoppm) or Ghostscript installed. Restart the dev server after installing.",
+      422,
+    );
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "work-admin-pdf-"));
+  try {
+    const file = path.join(dir, "in.pdf");
+    await pipeline(req, limiter(PDF_LIMIT), createWriteStream(file));
+    const fh = await fs.open(file, "r");
+    const head = Buffer.alloc(5);
+    await fh.read(head, 0, 5, 0);
+    await fh.close();
+    if (head.toString("latin1") !== "%PDF-")
+      fail("That file is not a valid PDF.", 415);
+    const before = (await fs.stat(file)).size;
+    const out = path.join(dir, "page");
+    try {
+      if (tool.kind === "poppler")
+        await run(
+          tool.bin,
+          [
+            "-f",
+            "1",
+            "-l",
+            "1",
+            "-png",
+            "-singlefile",
+            "-scale-to",
+            "2400",
+            file,
+            out,
+          ],
+          { timeout: 90_000 },
+        );
+      else
+        await run(
+          tool.bin,
+          [
+            "-dNOPAUSE",
+            "-dBATCH",
+            "-dSAFER",
+            "-dQUIET",
+            "-sDEVICE=png16m",
+            "-r150",
+            "-dTextAlphaBits=4",
+            "-dGraphicsAlphaBits=4",
+            "-dFirstPage=1",
+            "-dLastPage=1",
+            `-sOutputFile=${out}.png`,
+            file,
+          ],
+          { timeout: 90_000 },
+        );
+      return { buf: await fs.readFile(`${out}.png`), before };
+    } catch {
+      return fail(
+        "Could not render that PDF. It may be password protected or damaged.",
+        422,
+      );
+    }
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+}
+
 /* ---------- endpoints ---------- */
 
 async function uploadVideo(c: Ctx, req: IncomingMessage, name: string) {
@@ -379,9 +474,26 @@ async function upload(c: Ctx, req: IncomingMessage, q: URLSearchParams) {
     if (ext !== ".mp4") fail("Only .mp4 videos are accepted.", 415);
     return uploadVideo(c, req, name);
   }
-  if (!IMG_EXT.has(ext))
-    fail("Unsupported file type. Use JPG, PNG, WebP, AVIF, GIF or TIFF.", 415);
-  const buf = await readBuffer(req, LIMIT.image);
+  let buf: Buffer;
+  let before: number;
+  const notes: string[] = [];
+  if (ext === ".pdf") {
+    if (category === "videos")
+      fail(
+        "PDFs can't be video thumbnails here. Upload an image instead.",
+        415,
+      );
+    ({ buf, before } = await pdfToPng(req));
+    notes.push("Preview made from page 1 of the PDF.");
+  } else {
+    if (!IMG_EXT.has(ext))
+      fail(
+        "Unsupported file type. Use JPG, PNG, WebP, AVIF, GIF, TIFF or PDF.",
+        415,
+      );
+    buf = await readBuffer(req, LIMIT.image);
+    before = buf.length;
+  }
   const dir = safeJoin(c.workRoot, category);
   await fs.mkdir(dir, { recursive: true });
   return serial(async () => {
@@ -390,12 +502,12 @@ async function upload(c: Ctx, req: IncomingMessage, q: URLSearchParams) {
     await writeAtomic(path.join(dir, `${base}.webp`), r.out);
     return {
       path: `/work/${category}/${base}.webp`,
-      bytesBefore: buf.length,
+      bytesBefore: before,
       bytesAfter: r.out.length,
       sourceWidth: r.sw,
       sourceHeight: r.sh,
       ratio: r.ratio,
-      warnings: r.warnings,
+      warnings: [...notes, ...r.warnings],
     };
   });
 }
@@ -545,6 +657,7 @@ function normalize(raw: unknown) {
 
 async function load(c: Ctx) {
   ffmpegOk = undefined; // re-detect, in case it was installed since the last load
+  pdfTool = undefined;
   let raw: Obj = {};
   try {
     raw = JSON.parse(await fs.readFile(c.jsonFile, "utf8")) as Obj;
@@ -579,7 +692,7 @@ async function load(c: Ctx) {
       }
     }),
   );
-  return { data, sizes, ffmpeg: await hasFfmpeg() };
+  return { data, sizes, ffmpeg: await hasFfmpeg(), pdf: !!(await detectPdf()) };
 }
 
 async function save(c: Ctx, body: unknown) {

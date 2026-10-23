@@ -45,12 +45,10 @@
 @layer base {
   html {
     scroll-padding-top: env(safe-area-inset-top);
-    scroll-snap-type: y proximity; /* each section snaps into view; delete this line to turn snapping off */
-    scroll-behavior: smooth;
   }
-  @media (prefers-reduced-motion: reduce) {
+  @media (min-width: 768px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
     html {
-      scroll-behavior: auto;
+      scroll-snap-type: y mandatory;
     }
   }
   body {

@@ -7,7 +7,7 @@ export function Hero() {
   return (
     <header
       id="hero"
-      className="relative flex min-h-svh snap-start flex-col overflow-hidden bg-navy px-[22px] pt-[calc(28px+env(safe-area-inset-top))] text-center text-white md:justify-center md:px-8 md:pb-12 md:text-left"
+      className="relative flex min-h-svh snap-start flex-col overflow-hidden bg-navy px-[22px] pt-[calc(68px+env(safe-area-inset-top))] text-center text-white md:justify-center md:px-8 md:pb-12 md:pt-[calc(28px+env(safe-area-inset-top))] md:text-left"
     >
       {/* CV corner cut: desktop only (on phones it would sit under the name) */}
       <div
@@ -48,8 +48,8 @@ export function Hero() {
       {/* The cutout. Phones: fills the space under the text, standing on the bottom edge.
           Desktop: pinned bottom-right, looking left toward the text.
           The amber circle stops the navy suit from blending into the navy hero. */}
-      <div className="relative z-0 mt-3 min-h-[280px] flex-1 md:absolute md:bottom-0 md:right-[3%] md:mt-0 md:aspect-[970/1400] md:h-[min(86svh,70vw)] md:flex-none lg:right-[6%]">
-        <div className="absolute bottom-0 left-1/2 aspect-[970/1400] h-full -translate-x-1/2 md:left-0 md:translate-x-0">
+      <div className="relative z-0 mt-3 min-h-70 flex-1 md:absolute md:bottom-0 md:right-[3%] md:mt-0 md:aspect-970/1400 md:h-[min(86svh,70vw)] md:flex-none lg:right-[6%]">
+        <div className="absolute bottom-0 left-1/2 aspect-970/1400 h-full -translate-x-1/2 md:left-0 md:translate-x-0">
           <div
             aria-hidden
             className="absolute left-1/2 top-[12%] aspect-square w-[104%] -translate-x-1/2 rounded-full bg-brand"

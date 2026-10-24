@@ -119,6 +119,18 @@
       "ratio": "landscape"
     },
     {
+      "title": "Banner Sticker",
+      "image": "/work/print/icare-sticker-table-front.webp",
+      "type": "Sticker",
+      "ratio": "landscape"
+    },
+    {
+      "title": "Banner Wall",
+      "image": "/work/print/icarebenefits-sorla-location-banner-wall-420x360cm.webp",
+      "type": "Banner",
+      "ratio": "landscape"
+    },
+    {
       "title": "ICare with ABA Bank Banner Standee",
       "image": "/work/print/icare-with-aba-bank-banner-standee-160cmx60cm.webp",
       "type": "Standee"
@@ -137,18 +149,6 @@
       "title": "Product Leaflet",
       "image": "/work/print/leaflet-icarebenefits.webp",
       "type": "Leaflet"
-    },
-    {
-      "title": "Banner Sticker",
-      "image": "/work/print/icare-sticker-table-front.webp",
-      "type": "Sticker",
-      "ratio": "landscape"
-    },
-    {
-      "title": "Banner Wall",
-      "image": "/work/print/icarebenefits-sorla-location-banner-wall-420x360cm.webp",
-      "type": "Banner",
-      "ratio": "landscape"
     }
   ],
   "videos": [],
